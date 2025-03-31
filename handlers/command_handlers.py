@@ -38,10 +38,15 @@ async def process_gpt_command(message: Message):
 
 
 @command_router.message(Command(commands='status'))
-async def process_status_command(state: FSMContext):
-    print(await state.get_data())
-    print(await state.get_state())
-    print(requests_history)
+async def process_status_command(message: Message, state: FSMContext):
+    state_data: dict[str, str] = await state.get_data()
+    state_cond: str = await state.get_state()
+    print(f"State_data: {state_data}")
+    print(f"State condition: {state_cond}")
+    print(f"Requests history: {requests_history}")
+    await message.answer(text=f"""
+        State data: {state_data}\nState condition: {state_cond}\nRequests history: {requests_history}
+    """)
 
 
 @command_router.message(Command(commands='cancel'), ~StateFilter(default_state))
