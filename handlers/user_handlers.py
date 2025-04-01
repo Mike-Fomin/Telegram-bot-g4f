@@ -26,32 +26,31 @@ user_router = Router()
 requests_history: list[dict[str, str]] = []
 
 
-class FSMDataText(StatesGroup):
-    fill_request = State()
+class FSMData(StatesGroup):
+    start_state = State()
+    text_request = State()
+    image_request = State()
 
-class FSMDataImage(StatesGroup):
-    fill_request = State()
 
-
-@user_router.callback_query(F.data == 'get_text_button', StateFilter(default_state))
+@user_router.callback_query(F.data == 'get_text_button', StateFilter(FSMData.start_state))
 async def process_choice_button1(callback: CallbackQuery, state: FSMContext):
     logger.debug(msg='Обработчик нажатия кнопки Текст')
     await callback.message.edit_text(
         text=LEXICON['text']
     )
-    await state.set_state(FSMDataText.fill_request)
+    await state.set_state(FSMData.text_request)
 
 
-@user_router.callback_query(F.data == 'get_image_button', StateFilter(default_state))
+@user_router.callback_query(F.data == 'get_image_button', StateFilter(FSMData.start_state))
 async def process_choice_button2(callback: CallbackQuery, state: FSMContext):
     logger.debug(msg='Обработчик нажатия кнопки Изображение')
     await callback.message.edit_text(
         text=LEXICON['image']
     )
-    await state.set_state(FSMDataImage.fill_request)
+    await state.set_state(FSMData.image_request)
 
 
-@user_router.message(StateFilter(FSMDataText.fill_request))
+@user_router.message(StateFilter(FSMData.text_request))
 async def process_text_request(message: Message, state: FSMContext):
     logger.debug(msg='Обработчик текстового запроса')
     await state.update_data(text=message.text)
@@ -62,7 +61,7 @@ async def process_text_request(message: Message, state: FSMContext):
     )
 
 
-@user_router.message(StateFilter(FSMDataImage.fill_request))
+@user_router.message(StateFilter(FSMData.image_request))
 async def process_image_request(message: Message, state: FSMContext):
     logger.debug(msg='Обработчик запроса изображения')
     await state.update_data(image_request=message.text)
@@ -80,7 +79,7 @@ async def process_send_button(callback: CallbackQuery, state: FSMContext):
 
     state_status: FSMContext = await state.get_state()
     match state_status:
-        case FSMDataText.fill_request:
+        case FSMData.text_request:
             requests_history.append(
                 {
                     'role': 'user',
@@ -107,7 +106,7 @@ async def process_send_button(callback: CallbackQuery, state: FSMContext):
                 text=LEXICON['request_save'],
                 reply_markup=save_response_kb
             )
-        case FSMDataImage.fill_request:
+        case FSMData.image_request:
             image_prompt: str = await state.get_value('image_request')
             await callback.message.delete()
 
@@ -141,7 +140,7 @@ async def process_save_button(callback: CallbackQuery, state: FSMContext):
 
     state_status: FSMContext = await state.get_state()
     match state_status:
-        case FSMDataText.fill_request:
+        case FSMData.text_request:
             await state.update_data(text_result=requests_history[-1]['content'])
             logger.debug(msg=requests_history[-1]['content'])
             if await state.get_value('photo_result'):
@@ -154,7 +153,7 @@ async def process_save_button(callback: CallbackQuery, state: FSMContext):
                     text=LEXICON['text_end_part'],
                     reply_markup=end_part_kb_text
                 )
-        case FSMDataImage.fill_request:
+        case FSMData.image_request:
             await state.update_data(photo_result= await state.get_value('photo_id'))
             logger.debug(msg=await state.get_value('photo_result'))
             if await state.get_value('text_result'):
@@ -167,21 +166,22 @@ async def process_save_button(callback: CallbackQuery, state: FSMContext):
                     text=LEXICON['image_end_part'],
                     reply_markup=end_part_kb_image
                 )
-    await state.set_state(default_state)
+    await state.set_state(FSMData.start_state)
 
 
-@user_router.callback_query(F.data == 'cancel_button', StateFilter(default_state))
+@user_router.callback_query(F.data == 'cancel_button', StateFilter(FSMData.start_state))
 async def process_cancel_button(callback: CallbackQuery, state: FSMContext):
     logger.debug(msg='Обработчик нажатия кнопки отмена')
     requests_history.clear()
     await state.clear()
+    await state.set_state(FSMData.start_state)
     await callback.message.edit_text(
         text=LEXICON['/gpt'],
         reply_markup=choice_menu_kb
     )
 
 
-@user_router.callback_query(F.data == 'send_to_chat_button', StateFilter(default_state))
+@user_router.callback_query(F.data == 'send_to_chat_button', StateFilter(FSMData.start_state))
 async def process_chat_button(callback: CallbackQuery, state: FSMContext, **workflow_data):
     logger.debug(msg='Обработчик нажатия кнопки отправки в чат')
     text_result: str = await state.get_value('text_result')

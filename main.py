@@ -1,10 +1,12 @@
 import asyncio
 import logging
+import redis
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.redis import RedisStorage
 from config_data.config import load_config, Config
 from handlers.command_handlers import command_router
 from handlers.user_handlers import user_router
@@ -32,7 +34,14 @@ async def main() -> None:
 
     config: Config = load_config()
 
-    storage = MemoryStorage()
+    try:
+        storage = RedisStorage.from_url("redis://localhost:6379")
+        logging.debug(await storage.redis.ping())
+    except redis.exceptions.ConnectionError:
+        storage = MemoryStorage()
+        logging.debug("Подключено хранилище MemoryStorage")
+    else:
+        logging.debug("Подключено хранилище Redis")
 
     bot = Bot(
         token=config.tg_bot.token,

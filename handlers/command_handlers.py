@@ -7,11 +7,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from lexicon.lexicon import LEXICON
 from keyboards.keyboards import choice_menu_kb
-from handlers.user_handlers import requests_history
+from handlers.user_handlers import requests_history, FSMData
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     style='{',
     format='{filename}:{lineno} #{levelname:8} [{asctime}] - {name} - {message}'
 )
@@ -23,14 +23,14 @@ async def process_start_command(message: Message):
     await message.answer(text=LEXICON['/start'])
 
 
-@command_router.message(Command(commands='help'), StateFilter(default_state))
+@command_router.message(Command(commands='help'))
 async def process_help_command(message: Message):
     await message.answer(text=LEXICON['/help'])
-    print(message)
 
 
 @command_router.message(Command(commands='gpt'), StateFilter(default_state))
-async def process_gpt_command(message: Message):
+async def process_gpt_command(message: Message, state: FSMContext):
+    await state.set_state(FSMData.start_state)
     await message.answer(
         text=LEXICON['/gpt'],
         reply_markup=choice_menu_kb
@@ -44,9 +44,6 @@ async def process_status_command(message: Message, state: FSMContext):
     print(f"State_data: {state_data}")
     print(f"State condition: {state_cond}")
     print(f"Requests history: {requests_history}")
-    await message.answer(text=f"""
-        State data: {state_data}\nState condition: {state_cond}\nRequests history: {requests_history}
-    """)
 
 
 @command_router.message(Command(commands='cancel'), ~StateFilter(default_state))
@@ -54,6 +51,7 @@ async def process_cancel_command(message: Message, state: FSMContext):
     logger.debug(msg='Обработчик команды Отмена')
     requests_history.clear()
     await state.clear()
+    await state.set_state(FSMData.start_state)
     await message.answer(
         text=LEXICON['/gpt'],
         reply_markup=choice_menu_kb
@@ -65,4 +63,6 @@ async def process_cancel_command(message: Message, state: FSMContext):
     logger.debug(msg='Обработчик команды Выход')
     requests_history.clear()
     await state.clear()
-    await message.delete()
+    await message.answer(
+        text=LEXICON['/start']
+    )
