@@ -19,13 +19,19 @@
 
 ## Структура проекта
 - `main.py` — точка входа, настройка и запуск бота.
-- `outer_middleware.py` — middleware для ограничения доступа по списку администраторов.
-- `command_handlers.py` — обработчики команд (`/start`, `/help`, и т.д.).
-- `user_handlers.py` — логика взаимодействия с пользователем (выбор типа запроса, ввод, отправка).
-- `services.py` — функции для работы с AI-моделями (`gpt-4o-mini`, `flux`).
-- `config_data/config.py` — загрузка конфигурации (токен, ID администраторов, ID чата).
-- `lexicon/lexicon.py` — текстовые сообщения для бота.
-- `keyboards/keyboards.py` — клавиатуры для взаимодействия.
+- `middlewares`
+    - `outer_middleware.py` — middleware для ограничения доступа по списку администраторов.
+- `handlers`
+    - `command_handlers.py` — обработчики команд (`/start`, `/help`, и т.д.).
+    - `user_handlers.py` — логика взаимодействия с пользователем (выбор типа запроса, ввод, отправка).
+- `services`
+    - `services.py` — функции для работы с AI-моделями (`gpt-4o-mini`, `flux`).
+- `config_data`
+    - `config.py` — загрузка конфигурации (токен, ID администраторов, ID чата).
+- `lexicon`
+    - `lexicon.py` — текстовые сообщения для бота.
+- `keyboards`
+    - `keyboards.py` — клавиатуры для взаимодействия.
 
 ## Зависимости
 - Python 3.10+
