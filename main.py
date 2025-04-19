@@ -12,8 +12,6 @@ from handlers.command_handlers import command_router
 from handlers.user_handlers import user_router
 from middlewares.outer_middleware import AdminListMiddleware
 
-logger = logging.getLogger(__name__)
-
 
 async def on_startup(bot: Bot, admins: list[int]):
     for admin in admins:
@@ -24,6 +22,7 @@ async def on_startup(bot: Bot, admins: list[int]):
 
 
 async def main() -> None:
+    logger = logging.getLogger(__name__)
 
     logging.basicConfig(
         level=logging.INFO,

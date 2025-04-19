@@ -10,11 +10,7 @@ from keyboards.keyboards import choice_menu_kb
 from handlers.user_handlers import requests_history, FSMData
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.DEBUG,
-    style='{',
-    format='{filename}:{lineno} #{levelname:8} [{asctime}] - {name} - {message}'
-)
+logger.setLevel(logging.DEBUG)
 
 command_router = Router()
 

@@ -16,11 +16,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    style='{',
-    format='{filename}:{lineno} #{levelname:8} [{asctime}] - {name} - {message}'
-)
+logger.setLevel(logging.INFO)
+
 user_router = Router()
 
 requests_history: list[dict[str, str]] = []
